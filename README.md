@@ -2,6 +2,32 @@
 
 **Creación de Front-End y testing para SimpleSwap del Módulo 3**
 
+---
+
+## SimpleSwap
+
+**Dirección del contrato:**  
+`0x43D3148C67147eE744c71f1c089909Fe50C521DF`  
+[Ver en Etherscan](https://sepolia.etherscan.io/address/0x43D3148C67147eE744c71f1c089909Fe50C521DF#code)
+
+---
+
+## tokenA (TokenBrito)
+
+**Dirección del token:**  
+`0x978110ED33f7c45874CDF13Df4c3D12148FD94A8`  
+[Ver en Etherscan](https://sepolia.etherscan.io/address/0x978110ED33f7c45874CDF13Df4c3D12148FD94A8)
+
+---
+
+## tokenB (TokenFreddy)
+
+**Dirección del token:**  
+`0x54F291892c6c9be28149e65731d6988A97fb04fd`  
+[Ver en Etherscan](https://sepolia.etherscan.io/address/0x54F291892c6c9be28149e65731d6988A97fb04fd)
+
+---
+
 📢 **Requerimientos:**
 
 ### 1️⃣ Interacción con el contrato  
