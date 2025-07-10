@@ -4,6 +4,18 @@
 
 ---
 
+## Frontend
+**Link SimpleSwap:**
+[SimpleSwapWeb](https://freddybrito.github.io/Etherium_TP_4/)
+
+---
+
+## Pruebas Unitarias
+**Resultado de covertura:**
+[COVERAGE](./coverage.md)
+
+---
+
 ## SimpleSwap
 
 **Dirección del contrato:**  
