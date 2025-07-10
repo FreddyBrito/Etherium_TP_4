@@ -56,8 +56,10 @@ async function handleSubmit() {
     // acá la aprobacion y compra.
     const AmountToBuy = document.querySelector("#form > input.IHAVE").value;
 
+    //swapExactTokensForTokens(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline)
+
     if(buyOrApprove!=0) {
-      swapInstance.methods.buy(AmountToBuy).send({from: address})
+      swapInstance.methods.swapExactTokensForTokens(AmountToBuy,0,[btk_address,ftk_address],address,1762114086).send({from: address})
           .on('transactionHash', function(hash){
               showToast("transactionHash: "+hash, "orange");
           })
@@ -94,15 +96,15 @@ async function handleSubmit() {
 }
 
 
-async function setBalanceBTK() {
-  btkInstance = new web3.eth.Contract(ftk_abi, ftk_address);
-  const balanceFTK = await btkInstance.methods.balanceOf(address).call();
+async function setBalanceFTK() {
+  ftkInstance = new web3.eth.Contract(ftk_abi, ftk_address);
+  const balanceFTK = await ftkInstance.methods.balanceOf(address).call();
   document.getElementById("balanceFTK").innerHTML = balanceFTK;
 }
 
-async function setBalanceFTK() {
-  ftkInstance = new web3.eth.Contract(btk_abi, btk_address);
-  const balanceBTK = await ftkInstance.methods.balanceOf(address).call();
+async function setBalanceBTK() {
+  btkInstance = new web3.eth.Contract(btk_abi, btk_address);
+  const balanceBTK = await btkInstance.methods.balanceOf(address).call();
   document.getElementById("balanceBTK").innerHTML = balanceBTK;
 }
 
