@@ -19,8 +19,8 @@
 ## SimpleSwap
 
 **Dirección del contrato:**  
-`0x43D3148C67147eE744c71f1c089909Fe50C521DF`  
-[Ver en Etherscan](https://sepolia.etherscan.io/address/0x43D3148C67147eE744c71f1c089909Fe50C521DF#code)
+`0x0b873922A90A4d8Ac7FEDf90Bcb7d1B1BD6a7A71`  
+[Ver en Etherscan](https://sepolia.etherscan.io/address/0x0b873922A90A4d8Ac7FEDf90Bcb7d1B1BD6a7A71#code)
 
 ---
 
