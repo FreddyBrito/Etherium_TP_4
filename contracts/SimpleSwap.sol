@@ -712,8 +712,6 @@ abstract contract ReentrancyGuard {
 
 pragma solidity ^0.8.27;
 
-
-
 /**
  * @title SimpleSwap (Final Corrected Version)
  * @author Freddy Brito (Inspired by Uniswap V2)
@@ -724,28 +722,79 @@ contract SimpleSwap is ERC20, ReentrancyGuard {
 
     // --- State Variables ---
 
+    // Address of token A used in the pair
     ERC20 public immutable tokenA;
+
+    // Address of token B used in the pair
     ERC20 public immutable tokenB;
 
+    // Current reserve of token A in the liquidity pool
     uint256 public reserveA;
+
+    // Current reserve of token B in the liquidity pool
     uint256 public reserveB;
 
 
     // --- Events ---
+    
+    /** 
+    * @notice Emitted when liquidity is added to the pool
+    * @param provider The address that provided the liquidity
+    * @param amountA The amount of token A added
+    * @param amountB The amount of token B added
+    * @param liquidity The amount of liquidity tokens minted
+    */
     event AddLiquidity(address indexed provider, uint256 amountA, uint256 amountB, uint256 liquidity);
+
+    /** 
+    * @notice Emitted when liquidity is removed from the pool
+    * @param provider The address that removed the liquidity
+    * @param amountA The amount of token A returned
+    * @param amountB The amount of token B returned
+    * @param liquidity The amount of liquidity tokens burned
+    */
     event RemoveLiquidity(address indexed provider, uint256 amountA, uint256 amountB, uint256 liquidity);
+
+    /** 
+    * @notice Emitted when a swap is executed
+    * @param sender The address initiating the swap
+    * @param to The address receiving the output tokens
+    * @param amountIn The amount of input tokens swapped
+    * @param amountOut The amount of output tokens received
+    * @param tokenIn The address of the input token
+    * @param tokenOut The address of the output token
+    */
     event Swap(address indexed sender, address indexed to, uint256 amountIn, uint256 amountOut, address tokenIn, address tokenOut);
+    
+    /** 
+    * @notice Emitted when the pool's reserves are updated
+    * @param reserveA The updated reserve of token A
+    * @param reserveB The updated reserve of token B
+    */
     event Sync(uint256 reserveA, uint256 reserveB);
+
+
 
     // --- Modifiers ---
 
+    /** 
+    * @notice Ensures that the transaction is still valid based on the given deadline
+    * @dev Reverts if the current block timestamp is greater than the provided deadline
+    * @param deadline The latest timestamp at which the transaction is still valid
+    */
     modifier ensure(uint256 deadline) {
         require(deadline >= block.timestamp, "EXPIRED");
         _;
     }
 
+
     // --- Constructor ---
 
+    /**
+     * @dev When deploying the contract we set the token pair and the liquidity token is created.
+     * @param _tokenA Address of the first ERC-20 token. (FTK)
+     * @param _tokenB Address of the second ERC-20 token. (BTK)
+     */
     constructor(address _tokenA, address _tokenB) ERC20("SimpleSwap Liquidity", "SSL") {
         require(_tokenA != address(0) && _tokenB != address(0), "ZERO_ADDRESS");
         require(_tokenA != _tokenB, "IDENTICAL_ADDRESSES");
@@ -753,9 +802,16 @@ contract SimpleSwap is ERC20, ReentrancyGuard {
         tokenB = ERC20(_tokenB);
     }
 
+
     // --- Reading Functions (View/Pure) ---
 
     /**
+     * @notice Returns the number of output tokens for a given input amount.
+     * @dev This is a pure view function, it does not modify state.
+     * @param amountIn The amount of the token being sent to the pool.
+     * @param reserveIn The reservation of the input token.
+     * @param reserveOut The reserve of the output token.
+     * @return amountOut The amount of the token to be received.
      * @notice Calculates the amount of output tokens for a given input amount, including fees.
      * @dev This is the standard Uniswap V2 formula for getAmountOut.
      */
@@ -767,6 +823,12 @@ contract SimpleSwap is ERC20, ReentrancyGuard {
         amountOut = (amountIn * reserveOut) / (reserveIn + amountIn);
     }
 
+    /**
+     * @notice Returns the instant price of token in terms of token to change.
+     * @dev It is based on the proportion of reserves. It does not consider the impact of a trade.
+     * @param token Token contract address.
+     * @return amountToPay price of token in units of the other token.
+     */
     function getAmountByTokenToChange(address token, uint256 amountToChange) public view returns (uint256 amountToPay) {
         (uint256 reserveIn, uint256 reserveOut) = (token == address(tokenA)) ? (reserveA, reserveB) : (reserveB, reserveA);
         amountToPay = getAmountOut(amountToChange, reserveIn, reserveOut);
@@ -774,16 +836,21 @@ contract SimpleSwap is ERC20, ReentrancyGuard {
 
     /**
      * @notice Returns the reserves of the pool.
+     * @return _reserveA tokenA reserve.
+     * @return _reserveB tokenB reserve.
      */
     function getReserves() public view returns (uint256 _reserveA, uint256 _reserveB) {
         return (reserveA, reserveB);
     }
+
 
     // --- Core Logic Functions ---
 
     /**
      * @dev Internal function to update reserves and emit a Sync event.
      * This is the most gas-efficient way to update state.
+     * @param _reserveA tokenA reserve.
+     * @param _reserveB tokenB reserve.
      */
     function _update(uint256 _reserveA, uint256 _reserveB) private {
         reserveA = _reserveA;
@@ -792,8 +859,18 @@ contract SimpleSwap is ERC20, ReentrancyGuard {
     }
 
     /**
-     * @notice Adds liquidity to the pool.
-     */
+    * @notice Adds liquidity to the pair.
+    * @dev The user must have approved the contract to spend their tokens first.
+    * @param amountADesired Desired amount of tokenA to add.
+    * @param amountBDesired Desired amount of tokenB to add.
+    * @param amountAMin Minimum amount of tokenA to add.
+    * @param amountBMin Minimum amount of tokenB to add.
+    * @param to Recipient of the liquidity tokens.
+    * @param deadline Time after which the transaction is invalid.
+    * @return amountA Effective amount of tokenA added.
+    * @return amountB Effective amount of tokenB added.
+    * @return liquidity Amount of liquidity tokens minted.
+    */
     function addLiquidity(uint256 amountADesired, uint256 amountBDesired, uint256 amountAMin, uint256 amountBMin, address to, uint256 deadline) external nonReentrant ensure(deadline) returns (uint256 amountA, uint256 amountB, uint256 liquidity) {
         (uint256 _reserveA, uint256 _reserveB) = (reserveA, reserveB); // Gas optimization: read to memory once
         
@@ -833,7 +910,14 @@ contract SimpleSwap is ERC20, ReentrancyGuard {
     }
 
     /**
-     * @notice Removes liquidity from the pool.
+     * @notice Withdraw liquidity from the pool.
+     * @param liquidity Amount of liquidity tokens to withdraw.
+     * @param amountAMin Acceptable minimums to avoid failures.
+     * @param amountBMin Acceptable minimums to avoid failures.
+     * @param to Address of the recipient.
+     * @param deadline Timestamp for the transaction.
+     * @return amountA Amounts received after withdrawing liquidity.
+     * @return amountB Amounts received after withdrawing liquidity.
      */
     function removeLiquidity(uint liquidity, uint amountAMin, uint amountBMin, address to, uint deadline) external nonReentrant ensure(deadline) returns (uint amountA, uint amountB) {
         require(balanceOf(msg.sender) >= liquidity, "INSUFFICIENT_LIQUIDITY");
@@ -858,6 +942,12 @@ contract SimpleSwap is ERC20, ReentrancyGuard {
 
     /**
      * @notice Swaps an exact amount of input tokens for as many output tokens as possible.
+     * @param amountIn Amount of input token.
+     * @param amountOutMin Minimum acceptable output token amount (slippage protection).
+     * @param path Input token address and Output token address.
+     * @param to Address that will receive the output tokens.
+     * @param deadline Deadline for the transaction to be valid (front-running protection).
+     * @notice Removes liquidity from the pool.
      */
     function swapExactTokensForTokens(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline) external nonReentrant ensure(deadline) {
         require(path.length == 2, "INVALID_PATH");
@@ -887,8 +977,15 @@ contract SimpleSwap is ERC20, ReentrancyGuard {
         emit Swap(msg.sender, to, _amountIn, amountOut, tokenInAddress, tokenOutAddress);
     }
 
+
     // --- Auxiliary Functions ---
 
+    /**
+    * @notice Calculates the integer square root of a given number
+    * @dev Uses the Babylonian method for computing square roots
+    * @param y The input number to compute the square root of
+    * @return z The integer square root of the input number
+    */
     function sqrt(uint y) private pure returns (uint z) {
         if (y > 3) {
             z = y;
