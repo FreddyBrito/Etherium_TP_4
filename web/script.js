@@ -2,7 +2,7 @@ var amount0=0;
 var amount1=1;
 var P0=0.1;// precio
 var P1=10;// Precio de BNB
-var oneToken=10;
+var oneToken=1;
 
 var buyOrApprove = 0;
 
@@ -24,7 +24,7 @@ async function init() {
     // leer precio P1
     web3 = new Web3(window.ethereum);
     swapInstance = new web3.eth.Contract(exchange_abi, exchange_address);
-    P0 = await swapInstance.methods.getAmountByTokenToChange(btk_address, oneToken).call();
+    P0 = await swapInstance.methods.getAmountByTokenToChange(ftk_address, oneToken).call();
     P1 = Number(P0);
     P0 = P1;
     document.getElementById('swap-price-now').innerHTML = P0;
