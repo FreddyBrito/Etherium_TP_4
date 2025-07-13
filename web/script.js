@@ -2,6 +2,7 @@ var amount0=0;
 var amount1=1;
 var P0=0.1;// precio
 var P1=10;// Precio de BNB
+var oneToken=10;
 
 var buyOrApprove = 0;
 
@@ -23,9 +24,10 @@ async function init() {
     // leer precio P1
     web3 = new Web3(window.ethereum);
     swapInstance = new web3.eth.Contract(exchange_abi, exchange_address);
-    P0 = await swapInstance.methods.price().call();
+    P0 = await swapInstance.methods.getAmountByTokenToChange(btk_address, oneToken).call();
     P1 = Number(P0);
     P0 = P1;
+    document.getElementById('swap-price-now').innerHTML = P0;
     //alert(P0)
 }
 
@@ -33,7 +35,6 @@ async function init() {
 async function connect()
 {
     //alert("conectar. Obtener address metamask");
-    //address = "0x98402384209348209348230948230942";
     await window.ethereum.request({"method": "eth_requestAccounts", "params": []});
     const account = await web3.eth.getAccounts();
 
@@ -44,10 +45,9 @@ async function connect()
 
     await setBalanceBTK();
     await setBalanceFTK();
-    await allowance();
 
     if(buyOrApprove==0) {
-      document.getElementById('swap-submit').innerHTML = "approve";
+      document.getElementById('swap-submit').innerHTML = "Approve";
     }
 }
 
@@ -83,12 +83,12 @@ async function handleSubmit() {
           })
           .on('receipt', async function(receipt){
               console.log(receipt);
-              showToast("transaccion correcta", "green");
+              showToast("Transaccion Correcta", "green");
               await allowance();
               if(buyOrApprove==0) {
                 document.getElementById('swap-submit').innerHTML = "Approve";
               } else {
-                document.getElementById('swap-submit').innerHTML = "Swapp";
+                document.getElementById('swap-submit').innerHTML = "Swap";
               }
           }) 
     }
